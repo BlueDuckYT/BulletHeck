@@ -6,6 +6,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityFireball;
 import net.minecraft.entity.projectile.ProjectileHelper;
+import net.minecraft.init.Items;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -13,9 +14,28 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickItem;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+@EventBusSubscriber
 public class EntityHeckOrb extends EntityFireball
 {
+    @SubscribeEvent
+    public static void rightclickStickToSpawnForTesting(RightClickItem event)
+    {
+        World world = event.getWorld();
+
+        if(!world.isRemote && event.getItemStack().getItem() == Items.STICK)
+        {
+            EntityPlayer player = event.getEntityPlayer();
+            EntityHeckOrb orb = new EntityHeckOrb(world, player, BulletHeckDifficulty.EASY);
+
+            orb.setPosition(player.posX + 3, player.posY, player.posZ);
+            world.spawnEntity(orb);
+        }
+    }
+
     public static final DamageSource DAMAGE_SOURCE = new DamageSource(BulletHeck.MOD_ID + ":heck_orb").setDamageBypassesArmor();
     private static final DataParameter<Integer> DIFFICULTY = EntityDataManager.<Integer>createKey(EntityHeckOrb.class, DataSerializers.VARINT);
     private static final int TICKS_TO_LIVE = 200;
@@ -25,6 +45,7 @@ public class EntityHeckOrb extends EntityFireball
     public EntityHeckOrb(World world)
     {
         super(world);
+        setSize(0.4F, 0.4F);
     }
 
     public EntityHeckOrb(World world, EntityLivingBase shooter, BulletHeckDifficulty difficulty)
