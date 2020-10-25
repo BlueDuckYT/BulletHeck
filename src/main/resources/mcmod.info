@@ -1,6 +1,6 @@
 [
   {
-    "modid": "BulletHeck",
+    "modid": "bulletheck",
     "name": "BulletHeck",
     "description": "Bullet Hell genre combat mod for minecraft 1.12.2, inspired by NieR",
     "version": "${version}",
@@ -9,7 +9,8 @@
     "updateUrl": "",
     "authorList": [
       "Kaleidio",
-      "Mysticpasta1"
+      "Mysticpasta1",
+	  "bl4ckscor3"
     ],
     "credits": "",
     "logoFile": "",
