@@ -1,10 +1,12 @@
 package net.digitalphantasia.bulletheck;
 
 import net.digitalphantasia.bulletheck.entity.EntityHeckOrb;
+import net.digitalphantasia.bulletheck.renderer.RenderHeckOrb;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -33,7 +35,7 @@ public class BulletHeck {
      */
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-
+        RenderingRegistry.registerEntityRenderingHandler(EntityHeckOrb.class, RenderHeckOrb::new);
     }
 
     /**
