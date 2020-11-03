@@ -7,12 +7,17 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityFireball;
 import net.minecraft.entity.projectile.ProjectileHelper;
 import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickItem;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -29,10 +34,23 @@ public class EntityHeckOrb extends EntityFireball
         if(!world.isRemote && event.getItemStack().getItem() == Items.STICK)
         {
             EntityPlayer player = event.getEntityPlayer();
-            EntityHeckOrb orb = new EntityHeckOrb(world, player, BulletHeckDifficulty.EASY);
+            int cubeSize = 10;
 
-            orb.setPosition(player.posX + 3, player.posY, player.posZ);
-            world.spawnEntity(orb);
+            //spawns a cube of heck orbs of size cubeSize
+            for(int x = 0; x < cubeSize; x++)
+            {
+                for(int y = 0; y < cubeSize; y++)
+                {
+                    for(int z = 0; z < cubeSize; z++)
+                    {
+                        EntityHeckOrb orb = new EntityHeckOrb(world, player, BulletHeckDifficulty.EASY);
+
+                        orb.setPosition(player.posX + 3 + x, player.posY + y, player.posZ + z);
+                        world.spawnEntity(orb);
+                    }
+                }
+
+            }
         }
     }
 
@@ -108,10 +126,32 @@ public class EntityHeckOrb extends EntityFireball
     {
         if(source.getTrueSource() instanceof EntityPlayer)
         {
-            setDead();
-            return true;
+            EntityPlayer player = (EntityPlayer)source.getTrueSource();
+
+            ItemStack stack = player.getHeldItemMainhand();
+
+            if(stack.getItem() instanceof ItemSword)
+            {
+                double reachDist = player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).getAttributeValue();
+                Vec3d origin = new Vec3d(player.getPosition());
+                AxisAlignedBB areaOfEffect;
+
+                origin.add(0, player.getEyeHeight(), 0);
+                areaOfEffect = new AxisAlignedBB(origin, origin);
+                areaOfEffect = areaOfEffect.grow(reachDist);
+                player.world.getEntitiesWithinAABB(EntityHeckOrb.class, areaOfEffect, e -> {
+                    Vec3d ePos = e.getPositionVector();
+                    Vec3d originToE = new Vec3d(origin.x - ePos.x, origin.y - ePos.y, origin.z - ePos.z);
+                    boolean isInFrontOfPlayer = originToE.dotProduct(player.getLookVec()) <= 0;
+                    boolean isInReach = MathHelper.sqrt(originToE.x * originToE.x + originToE.y * originToE.y + originToE.z * originToE.z) <= reachDist;
+
+                    return isInFrontOfPlayer && isInReach;
+                }).forEach(e -> e.setDead());
+                return true;
+            }
         }
-        else return false;
+
+        return false;
     }
 
     @Override
